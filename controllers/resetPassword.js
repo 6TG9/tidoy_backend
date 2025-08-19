@@ -3,11 +3,11 @@ const User = require("../models/registerModel");
 
 const resetPassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+    const {newPassword, confirmNewPassword } = req.body;
     const userId = req.user.id; // from auth middleware
 
     // 1. Validate input
-    if (!currentPassword || !newPassword || !confirmNewPassword) {
+    if (!newPassword || !confirmNewPassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
     if (newPassword !== confirmNewPassword) {
@@ -17,12 +17,6 @@ const resetPassword = async (req, res) => {
     // 2. Find user
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    // 3. Check current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect" });
-    }
 
     // 4. Hash new password
     const salt = await bcrypt.genSalt(10);
