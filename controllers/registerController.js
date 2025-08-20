@@ -1,25 +1,41 @@
 const Register = require("../models/registerModel");
+
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ====================== REGISTER CONTROLLER ======================
+// THE REGISTER CONTROLLER
+
 const register = async (req, res) => {
   const { name, email, number, password, confirmPassword } = req.body;
 
-  if (!name) return res.status(400).json({ message: "Name is required" });
-  if (!email) return res.status(400).json({ message: "Email is required" });
-  if (!number) return res.status(400).json({ message: "Number is required" });
-  if (!password)
+  if (!name) {
+    return res.status(400).json({ message: "Name is required" });
+  }
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  if (!number) {
+    return res.status(400).json({ message: "Number is required" });
+  }
+
+  if (!password) {
     return res.status(400).json({ message: "Password is required" });
-  if (password !== confirmPassword)
+  }
+
+  if (password !== confirmPassword) {
     return res.status(400).json({ message: "Password Mismatch" });
+  }
+
+  //   =============================
+
+  const salt = await bcryptjs.genSalt(10);
+  const saltedPassword = await bcryptjs.hash(password, salt);
+
+  //   ===============================================
 
   try {
-    // Hash password
-    const salt = await bcryptjs.genSalt(10);
-    const saltedPassword = await bcryptjs.hash(password, salt);
-
-    // Save user
     const registerUser = await Register.create({
       name,
       email,
@@ -27,36 +43,46 @@ const register = async (req, res) => {
       password: saltedPassword,
     });
 
-    // Generate JWT
+    // ================================================
+
     const token = jwt.sign(
-      { id: registerUser._id, email: registerUser.email },
-      process.env.JWT_SECRET, // ✅ put a strong secret in .env
-      { expiresIn: "1h" } // expires in 1 hour
+      { userID: registerUser._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "3d", // expires in 3 days
+      }
     );
 
-    console.log(registerUser);
     res.status(201).json({
       message: "Registered Successfully",
-      user: registerUser,
-      token, // send token back
+      newUser: {
+        name: registerUser.name,
+        id: registerUser._id,
+        email: registerUser.email,
+        number: registerUser.number,
+      },
+      token,
     });
   } catch (err) {
-    console.error("Error registering user:", err);
-    res.status(500).json({ message: "Server error while registering" });
+    console.error(err);
   }
 };
 
-// ====================== FETCH ALL DATA CONTROLLER ======================
-const fetchAllData = async (req, res) => {
-  try {
-    const fetchData = await Register.find(); // ✅ fetch all users
-    res.status(200).json(fetchData);
-    console.log(fetchData);
-  } catch (err) {
-    console.log("Failed to fetch data", err);
-    res.status(500).json({ message: "Server error while fetching data" });
-  }
-};
+// ======================================================================
 
-// ====================== EXPORTS ======================
-module.exports = { register, fetchAllData };
+// const getUser = async (req, res) => {
+//   const user = await Register.findById(req.user.userID);
+
+//   if (!user) {
+//     res.status(400).json({ message: "User not found" });
+//   }
+
+//   res.status(200).json({
+//     id: user._id,
+//     name: user.name,
+//     email: user.email,
+//     number: user.number,
+//   });
+// };
+
+module.exports = register;
