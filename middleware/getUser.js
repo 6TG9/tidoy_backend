@@ -10,9 +10,10 @@ const getUserMiddleMan = (req, res, next) => {
   const token = getUserHeader.split(" ")[1];
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = { userID: payload.userID };
+    // ✅ match your login payload
+    req.user = { id: payload.id };
     next();
   } catch (err) {
     console.error(err);
