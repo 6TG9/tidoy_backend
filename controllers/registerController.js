@@ -205,5 +205,15 @@ const getPaginatedUser = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+// ==============================================
 
-module.exports = { register, login, loginPhone, getUser, getPaginatedUser };
+const userCount = async (req, res) => {
+  try {
+    const count = await Register.countDocuments({});
+    res.status(200).json({ totalCount: count });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching count" });
+  }
+};
+
+module.exports = { register, login, loginPhone, getUser, getPaginatedUser, userCount };
