@@ -1,6 +1,7 @@
 const Register = require("../models/registerModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const LoginHistory = require("../models/loginHistory");
 
 // ================= REGISTER ===================
 const register = async (req, res) => {
@@ -82,6 +83,9 @@ const login = async (req, res) => {
       });
       return res.status(401).json({ message: "Invalid password" });
     }
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
 
     const token = jwt.sign(
       { id: user._id, name: user.name },
@@ -95,7 +99,11 @@ const login = async (req, res) => {
       status: "success",
     });
 
-    res.status(200).json({ message: "Login Successful", user, token });
+    const { password: _, ...userData } = user.toObject();
+
+    res
+      .status(200)
+      .json({ message: "Login Successful", user: userData, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
