@@ -182,5 +182,28 @@ const getUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// =================================================
 
-module.exports = { register, login, loginPhone, getUser };
+const getPaginatedUser = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      Register.find().skip(skip).limit(limit),
+      Register.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+module.exports = { register, login, loginPhone, getUser, getPaginatedUser };

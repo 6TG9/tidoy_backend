@@ -4,6 +4,7 @@ const {
   login,
   loginPhone,
   getUser,
+  getPaginatedUser,
 } = require("../controllers/registerController");
 
 const getUserMiddleMan = require("../middleware/getUser");
@@ -14,5 +15,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/loginPhone", loginPhone);
 router.get("/me", getUserMiddleMan, getUser);
+router.get("/listUsers", getPaginatedUser)
 
 module.exports = router;
