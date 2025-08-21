@@ -65,17 +65,35 @@ const login = async (req, res) => {
   try {
     const user = await Register.findOne({ name });
     if (!user) {
+      await LoginHistory.create({
+        userId: null,
+        loginType: "name",
+        status: "failed",
+      });
       return res.status(404).json({ message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid password" });
+    if (!isMatch) {
+      await LoginHistory.create({
+        userId: user._id,
+        loginType: "name",
+        status: "failed",
+      });
+      return res.status(401).json({ message: "Invalid password" });
+    }
 
     const token = jwt.sign(
       { id: user._id, name: user.name },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    await LoginHistory.create({
+      userId: user._id,
+      loginType: "name",
+      status: "success",
+    });
 
     res.status(200).json({ message: "Login Successful", user, token });
   } catch (error) {
@@ -120,6 +138,12 @@ const loginPhone = async (req, res) => {
 
     // ✅ don’t expose password
     const { password: _, ...userData } = user.toObject();
+
+    await LoginHistory.create({
+      userId: user._id,
+      loginType: "phone",
+      status: isMatch ? "success" : "failed",
+    });
 
     res.status(200).json({
       message: "Login Successful",
