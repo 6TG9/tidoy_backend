@@ -4,7 +4,7 @@ const getUserMiddleMan = (req, res, next) => {
   const getUserHeader = req.headers.authorization;
 
   if (!getUserHeader || !getUserHeader.startsWith("Bearer ")) {
-    return res.status(400).json({ message: "No Token Provided" });
+    return res.status(401).json({ message: "No Token Provided" });
   }
 
   const token = getUserHeader.split(" ")[1];
@@ -16,7 +16,7 @@ const getUserMiddleMan = (req, res, next) => {
     next();
   } catch (err) {
     console.error(err);
-    return res.status(400).json({ message: "Not You FAM" });
+    return res.status(401).json({ message: "Not You FAM" });
   }
 };
 
